@@ -108,7 +108,7 @@ def toCOCO(data_type:str, root_path:str):
     sub_index = 0 # the index of ground truth instance
     # TODO : 개수 제한
     # num_images = 32153 if data_type == 'validation' else 191961
-    num_images = 5000
+    num_images = 100
     for num in tqdm(range(1, num_images+1)):
         json_name = f'{root_path}/data/DF2/{data_type}/annos/' + str(num).zfill(6)+'.json'
         image_name = f'{root_path}/data/DF2/{data_type}/image/' + str(num).zfill(6)+'.jpg'

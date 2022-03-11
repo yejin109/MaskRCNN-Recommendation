@@ -41,12 +41,16 @@ class DeepFashion2Config:
     USE_MINI_MASK = True
 
     batch_size = 4
-    score_threshold = 0.965
+    score_threshold = 0.8
     hidden_layer = 256
     lr = 1e-2
+    weight_decay = 1e-4
     max_size = 800
     num_epochs = 2
-
+    classes = [
+        "rshort sleeve top", "long sleeve top", "short sleeve outwear", "long sleeve outwear", "vest", "sling", "shorts",
+        "trousers", "skirt", "short sleeve dress", "long sleeve dress", "vest dress", "sling dress"
+        ]
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
     def __init__(self, root_path: str):

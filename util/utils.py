@@ -2,14 +2,11 @@ import torch
 import cv2
 import random
 import numpy as np
-import config
 
 from PIL import Image
 import torchvision.transforms.functional as TF
 
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-
-classes = config.classes
 
 
 def tensor2img(tensor):
@@ -19,7 +16,7 @@ def tensor2img(tensor):
     return img
 
 
-def apply_mask(image, mask, labels, boxes, file_name):
+def apply_mask(image, mask, labels, boxes, file_name, classes):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     alpha = 1
@@ -30,14 +27,11 @@ def apply_mask(image, mask, labels, boxes, file_name):
     segmentation_map = np.zeros((w, h, 3), np.uint8)
 
     for n in range(mask.shape[0]):
-        if labels[n] == 0:
-            continue
-        else:
-            color = COLORS[random.randrange(0, len(COLORS))]
-            segmentation_map[:, :, 0] = np.where(mask[n] > 0.5, COLORS[labels[n]][0], 0)
-            segmentation_map[:, :, 1] = np.where(mask[n] > 0.5, COLORS[labels[n]][1], 0)
-            segmentation_map[:, :, 2] = np.where(mask[n] > 0.5, COLORS[labels[n]][2], 0)
-            image = cv2.addWeighted(image, alpha, segmentation_map, beta, gamma, dtype=cv2.CV_8U)
+        color = COLORS[random.randrange(0, len(COLORS))]
+        segmentation_map[:, :, 0] = np.where(mask[n] > 0.5, COLORS[labels[n]][0], 0)
+        segmentation_map[:, :, 1] = np.where(mask[n] > 0.5, COLORS[labels[n]][1], 0)
+        segmentation_map[:, :, 2] = np.where(mask[n] > 0.5, COLORS[labels[n]][2], 0)
+        image = cv2.addWeighted(image, alpha, segmentation_map, beta, gamma, dtype=cv2.CV_8U)
 
         # draw the bounding boxes around the objects
         cv2.rectangle(image, boxes[n][0], boxes[n][1], color=color, thickness=2)
