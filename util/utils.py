@@ -13,7 +13,7 @@ classes = config.classes
 
 
 def tensor2img(tensor):
-    tensor = 127.5 * (tensor[0].data.cpu().float().numpy() + 1.0)
+    tensor = 127.5 * (tensor.data.cpu().float().numpy() + 1.0)
     img = tensor.astype(np.uint8)
     img = np.transpose(img, (1, 2, 0))
     return img

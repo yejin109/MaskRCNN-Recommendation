@@ -1,3 +1,5 @@
+import torch
+
 # COCO
 classes = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
                'bus', 'train', 'truck', 'boat', 'traffic light',
@@ -28,3 +30,28 @@ hidden_layer = 256
 lr = 1e-3
 max_size = 800
 num_epochs = 5
+
+
+class DeepFashion2Config:
+    NAME = "deepfashion2"
+    IMAGES_PER_GPU = 1
+    GPU_COUNT = 1
+    NUM_CLASSES = 1 + 13  # Background + category
+
+    USE_MINI_MASK = True
+
+    batch_size = 4
+    score_threshold = 0.965
+    hidden_layer = 256
+    lr = 1e-2
+    max_size = 800
+    num_epochs = 2
+
+    device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+
+    def __init__(self, root_path: str):
+        self.train_img_dir = f"{root_path}/data/DF2/train/image"
+        self.train_json_path = f"{root_path}/data/DF2/train/train.json"
+        self.valid_img_dir = f"{root_path}/data/DF2/validation/image"
+        self.valid_json_path = f"{root_path}/data/DF2/validation/validation.json"
+        self.log_path = f"{root_path}/save/log"
