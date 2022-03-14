@@ -17,6 +17,8 @@ def tensor2img(tensor):
 
 
 def apply_mask(image, mask, labels, boxes, file_name, classes):
+    labels = labels -1
+    final_labels = []
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     alpha = 1
@@ -36,13 +38,15 @@ def apply_mask(image, mask, labels, boxes, file_name, classes):
         # draw the bounding boxes around the objects
         cv2.rectangle(image, boxes[n][0], boxes[n][1], color=color, thickness=2)
 
-        print(classes[labels[n]])
         # put the label text above the objects
         cv2.putText(image, classes[labels[n]], (boxes[n][0][0], boxes[n][0][1] - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, color,
                     thickness=2, lineType=cv2.LINE_AA)
+        final_labels.append(labels[n].detach().cpu().numpy())
+
     # image save
-    cv2.imwrite(f'save/{file_name}.png', image)
+    cv2.imwrite(f'save/png/{file_name}.png', image)
+    return final_labels
 
 
 class Compose:
