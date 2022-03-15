@@ -54,39 +54,45 @@ optimizer = SGD(model.parameters(), lr=lr, weight_decay=weight_decay)
 
 
 # Train
-model.train()
-print(f"한 에폭당 iteration 수 : {len(train_loader)}")
-loss_per_iter = []
+# model.train()
+# print(f"한 에폭당 iteration 수 : {len(train_loader)}")
+# loss_per_iter = []
+#
+# for epoch in range(num_epochs):
+#     for i, (images, targets) in tqdm(enumerate(train_loader)):
+#         optimizer.zero_grad()
+#         images = [image.to(device) for image in images]
+#         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+#
+#         losses = model(images, targets)
+#         loss = sum(loss for loss in losses.values())
+#         loss_per_iter.append(loss.detach().cpu().numpy())
+#
+#         print(
+#             f"{epoch}, {i}, C: {losses['loss_classifier'].item():.5f}, M: {losses['loss_mask'].item():.5f}, "
+#             f"B: {losses['loss_box_reg'].item():.5f}, O: {losses['loss_objectness'].item():.5f}, T: {loss.item():.5f}")
+#
+#         loss.backward()
+#         optimizer.step()
+# #
+# torch.save(model.load_state_dict(), 'save/model.pt')
+#
+# plt.figure()
+# plt.plot(loss_per_iter)
+# plt.show()
 
-for epoch in range(num_epochs):
-    for i, (images, targets) in tqdm(enumerate(train_loader)):
-        optimizer.zero_grad()
-        images = [image.to(device) for image in images]
-        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-
-        losses = model(images, targets)
-        loss = sum(loss for loss in losses.values())
-        loss_per_iter.append(loss.detach().cpu().numpy())
-
-        print(
-            f"{epoch}, {i}, C: {losses['loss_classifier'].item():.5f}, M: {losses['loss_mask'].item():.5f}, "
-            f"B: {losses['loss_box_reg'].item():.5f}, O: {losses['loss_objectness'].item():.5f}, T: {loss.item():.5f}")
-
-        loss.backward()
-        optimizer.step()
-
-plt.figure()
-plt.plot(loss_per_iter)
-plt.show()
 
 # Test
+
+model.load_state_dict(torch.load('save/model.pt'))
+
 box_predictor_param = model.roi_heads.box_predictor.state_dict()
 embedding_extractor = EmbeddingExtractor(in_features, num_classes, box_predictor_param)
 model.roi_heads.box_predictor = embedding_extractor
 
-mask_predictor_param = model.roi_heads.mask_predictor.state_dict()
-mask_indexer = MaskIndexer(in_features_mask, hidden_layer, num_classes, mask_predictor_param)
-model.roi_heads.mask_predictor = mask_indexer
+# mask_predictor_param = model.roi_heads.mask_predictor.state_dict()
+# mask_indexer = MaskIndexer(in_features_mask, hidden_layer, num_classes, mask_predictor_param)
+# model.roi_heads.mask_predictor = mask_indexer
 
 test_dataset = FashionDataset(config.valid_json_path, config.valid_img_dir, device, transforms=transform)
 test_loader = DataLoader(train_dataset, batch_size=1, shuffle=False, collate_fn=collate_fn)
