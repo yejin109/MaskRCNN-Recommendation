@@ -1,4 +1,3 @@
-import os
 import numpy as np
 
 from PIL import Image
@@ -6,37 +5,16 @@ from pycocotools.coco import COCO
 
 import torch
 from torch.utils.data import Dataset
-import torchvision.transforms as transforms
-
-
-# Crawling Dataset
-class ImgDataset(Dataset):
-    def __init__(self, max_size, device, transforms_=None):
-        self.transform = transforms.Compose(transforms_)
-        files = []
-        file_list = os.listdir('data/')
-        for file in file_list:
-            # 이 때 Img의 길이를 일치시켜야 하는 문제 존재
-            img = Image.open(f'data/{file}').resize((max_size, max_size), Image.LANCZOS)
-            files.append(self.transform(img))
-
-        self.files = files
-        self.device = device
-
-    def __getitem__(self, index):
-        return self.files[index].to(self.device)
-
-    def __len__(self):
-        return len(self.files)
 
 
 # DACON - Pytorch Dataset
-class FashionDataset(Dataset):
-    def __init__(self, root_path, image_path, device, transforms=None):
-        self.coco = COCO(root_path)
-        self.image_ids = list(self.coco.imgToAnns.keys())
+class ODDataset(Dataset):
+    def __init__(self, json_path, image_dir_path, device, transforms=None):
+        self.coco = COCO(json_path)
+        # self.image_ids = list(self.coco.imgToAnns.keys())
+        self.image_ids = list(self.coco.getImgIds())
         self.transforms = transforms
-        self.image_path = image_path
+        self.image_path = image_dir_path
         self.device = device
 
     def __len__(self):

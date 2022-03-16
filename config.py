@@ -1,15 +1,8 @@
 import torch
 
 
-class DeepFashion2Config:
-    # DF2
-    classes = [
-        "rshort sleeve top", "long sleeve top", "short sleeve outwear", "long sleeve outwear", "vest", "sling", "shorts",
-        "trousers", "skirt", "short sleeve dress", "long sleeve dress", "vest dress", "sling dress"
-        ]
-
-    # Project
-    # classes = ["top", "trouser", "outwear", "skirt"]
+class Configuration:
+    classes = ["top", "trouser", "outwear", "skirt"]
 
     NAME = "deepfashion2"
     IMAGES_PER_GPU = 1
@@ -29,8 +22,5 @@ class DeepFashion2Config:
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
     def __init__(self, root_path: str):
-        self.train_img_dir = f"{root_path}/data/DF2/train/image"
-        self.train_json_path = f"{root_path}/data/DF2/train/train.json"
-        self.valid_img_dir = f"{root_path}/data/DF2/validation/image"
-        self.valid_json_path = f"{root_path}/data/DF2/validation/validation.json"
-        self.log_path = f"{root_path}/save/log"
+        self.musinsa_img_dir = f"{root_path}/data/musinsa_codimap/image"
+        self.musinsa_json_dir = f"{root_path}/data/musinsa_codimap/musinsa_dataset.json"
