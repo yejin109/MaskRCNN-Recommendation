@@ -1,2 +1,3 @@
-#Pytorch tranfer learning을 위한 tutorial site\n
+#Pytorch tranfer learning을 위한 tutorial site
+
 [pytorch transfer learning tutorial](https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html)
