@@ -2,7 +2,7 @@ import torch
 
 
 class Configuration:
-    classes = ["top", "trouser", "outwear", "skirt"]
+    classes = ["top", "skirt", "trouser", "outwear"]
 
     NAME = "deepfashion2"
     IMAGES_PER_GPU = 1
@@ -22,5 +22,5 @@ class Configuration:
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
     def __init__(self, root_path: str):
-        self.musinsa_img_dir = f"{root_path}/data/musinsa_codimap/image"
-        self.musinsa_json_dir = f"{root_path}/data/musinsa_codimap/musinsa_dataset.json"
+        self.musinsa_img_dir = f"{root_path}/data/crawling_data/total/image"
+        self.musinsa_json_dir = f"{root_path}/data/crawling_data/total_dataset.json"
