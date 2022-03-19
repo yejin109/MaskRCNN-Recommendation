@@ -2,7 +2,7 @@
 
 -[pytorch transfer learning tutorial](https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html)
 
--pytorch transfer learning tutorial: 위의 사이트에서 제공하는 코드
+-pytorch transfer learning tutorial.ipynb: 위의 사이트에서 제공하는 코드
 
 -hymenoptera_data: 위의 튜토리얼에서 사용한 데이터셋
 
