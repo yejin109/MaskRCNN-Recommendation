@@ -7,9 +7,11 @@
 -hymenoptera_data: 위의 튜토리얼에서 사용한 데이터셋
 
 
+
 ### 2. pytoch에서 제공하는 여러가지 pretrainded Convnet model들
 
 -[pytorch pretrained Convnet models](https://pytorch.org/vision/0.8/models.html) 
+
 
 
 ### 3. Densenet을 이용한 transferLearning
