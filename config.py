@@ -1,30 +1,26 @@
-# COCO
-classes = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
-               'bus', 'train', 'truck', 'boat', 'traffic light',
-               'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird',
-               'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear',
-               'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie',
-               'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
-               'kite', 'baseball bat', 'baseball glove', 'skateboard',
-               'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup',
-               'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
-               'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
-               'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed',
-           'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote',
-           'keyboard', 'cell phone', 'microwave', 'oven', 'toaster',
-           'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
-           'teddy bear', 'hair drier', 'toothbrush']
+import torch
 
-# Custom Dataset
-# classes = (
-#     'top', 'blouse', 't-shirt', 'Knitted fabri', 'shirt', 'bra top',
-#     'hood', 'blue jeans', 'pants', 'skirt', 'leggings', 'jogger pants',
-#     'coat', 'jacket', 'jumper', 'padding jacket', 'best', 'kadigan',
-#     'zip up', 'dress', 'jumpsuit')
 
-batch_size = 1
-score_threshold = 0.965
-hidden_layer = 256
-lr = 1e-3
-max_size = 800
-num_epochs = 5
+class Configuration:
+    classes = ["top", "skirt", "trouser", "outwear"]
+
+    NAME = "deepfashion2"
+    IMAGES_PER_GPU = 1
+    GPU_COUNT = 1
+    NUM_CLASSES = 1 + len(classes)  # Background + category
+
+    USE_MINI_MASK = True
+
+    batch_size = 4
+    score_threshold = 0.8
+    hidden_layer = 128
+    lr = 1e-2
+    weight_decay = 1e-3
+    max_size = 800
+    num_epochs = 5
+
+    device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+
+    def __init__(self, root_path: str):
+        self.musinsa_img_dir = f"{root_path}/data/crawling_data/total/image"
+        self.musinsa_json_dir = f"{root_path}/data/crawling_data/total_dataset.json"
