@@ -1,6 +1,13 @@
+import streamlit as st
+
+import pandas as pd
+import numpy as np
+from numpy.linalg import norm
+
 import os
-from PIL import Image
 import pickle
+from PIL import Image
+from sklearn.neighbors import NearestNeighbors
 
 import torch
 import torchvision
@@ -12,6 +19,9 @@ import torchvision.models.resnet as resnet
 conv1x1=resnet.conv1x1
 Bottleneck = resnet.Bottleneck
 BasicBlock= resnet.BasicBlock
+
+features_list = pickle.load(open("image_features_embedding.pkl", "rb"))
+img_files_list = pickle.load(open("img_files.pkl", "rb"))
 
 class ResNet_without_fc(nn.Module):
 
@@ -88,30 +98,77 @@ class ResNet_without_fc(nn.Module):
         return x
 
 device = torch.device('cpu')
-feature_model = ResNet_without_fc(resnet.BasicBlock, [2, 2, 2, 2], 2, True)
-feature_model.load_state_dict(torch.load('no_fc_model_state_dict.pt', map_location=device))
+feature_model_one = ResNet_without_fc(resnet.BasicBlock, [2, 2, 2, 2], 2, True)
+feature_model_one.load_state_dict(torch.load('no_fc_model_state_dict.pt', map_location=device))
 
 # torchvision.transforms
 tf_resize = transforms.Resize((224,224))
 tf_toTensor = transforms.ToTensor()
 
-# 파일 모으기
-image_path_all = []
-imageset_total = torch.Tensor()
-for fashion_images in os.listdir('data/무신사'):
-    images_path = os.path.join('data/무신사', fashion_images)
-    image_path_all.append(images_path)
-    img_RGB  = Image.open(images_path).convert('RGB')
-    # PIL to Tensor
-    img_RGB_tensor_from_PIL = tf_toTensor(tf_resize(img_RGB))
-    img_unsqueeze = torch.unsqueeze(img_RGB_tensor_from_PIL, 0)
-    imageset_total = torch.cat([imageset_total,img_unsqueeze], dim=0)
 
-feature_model.eval()
-with torch.no_grad():
-    output_feature=feature_model(imageset_total)
-# print(output_feature.shape)
-# torch.Size([2,512])
+st.title('Clothing recommender system')
 
-pickle.dump(output_feature, open("image_features_embedding.pkl", "wb"))
-pickle.dump(image_path_all, open("img_files.pkl", "wb"))
+def save_file(uploaded_file):
+    try:
+        with open(os.path.join("uploader", uploaded_file.name), 'wb') as f:
+            f.write(uploaded_file.getbuffer())
+            return 1
+    except:
+        return 0
+
+def recommendd(features, features_list):
+    neighbors = NearestNeighbors(n_neighbors=6, algorithm='brute', metric='euclidean')
+    neighbors.fit(features_list)
+
+    distence, indices = neighbors.kneighbors([features])
+
+    return indices
+
+uploaded_file = st.file_uploader("Choose your image")
+if uploaded_file is not None:
+    if save_file(uploaded_file):
+        # display image
+        show_images = Image.open(uploaded_file)
+        size = (400, 400)
+        resized_im = show_images.resize(size)
+        st.image(resized_im)
+
+        # to Tensor
+        img_RGB  = Image.open(uploaded_file).convert('RGB')
+        # PIL to Tensor
+        img_RGB_tensor_from_PIL = tf_toTensor(tf_resize(img_RGB))
+        img_unsqueeze = torch.unsqueeze(img_RGB_tensor_from_PIL, 0)
+
+        # extract features of uploaded image
+        feature_model_one.eval()
+        with torch.no_grad():
+            features=feature_model_one(img_unsqueeze)
+
+        # features into list
+        features = torch.squeeze(features,0).tolist()
+        features_list = features_list.tolist()
+
+        img_indicess = recommendd(features, features_list)
+        col1,col2,col3,col4,col5 = st.columns(5)
+
+        with col1:
+            st.header("I")
+            st.image(img_files_list[img_indicess[0][0]])
+
+        with col2:
+            st.header("II")
+            st.image(img_files_list[img_indicess[0][1]])
+
+        with col3:
+            st.header("III")
+            st.image(img_files_list[img_indicess[0][2]])
+
+        with col4:
+            st.header("IV")
+            st.image(img_files_list[img_indicess[0][3]])
+
+        with col5:
+            st.header("V")
+            st.image(img_files_list[img_indicess[0][4]])
+    else:
+        st.header("Some error occur")
