@@ -1,7 +1,14 @@
 import torch
 
 
-class Configuration:
+class RecomConfig:
+    def __init__(self, root_path: str):
+        self.train_data_dir = f"{root_path}/data/recom_train/image"
+        self.test_item_dir = f"{root_path}/data/recom_test/image/item"
+        self.test_outfit_dir = f"{root_path}/data/recom_test/image/style"
+
+
+class MaskConfig:
     classes = ["top", "skirt", "trouser", "outwear"]
 
     NAME = "deepfashion2"
