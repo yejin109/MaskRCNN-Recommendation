@@ -83,11 +83,11 @@ def train_mask_model(model, train_loader, num_epochs, optimizer):
 
 # Test
 def test_mask_model(model, num_classes, json_path, image_dir_path, transform, classes):
-    model.load_state_dict(torch.load('save/mask_model/model_mask.pt'))
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     box_predictor_param = model.roi_heads.box_predictor.state_dict()
     embedding_extractor = EmbeddingExtractor(in_features, num_classes, box_predictor_param)
     model.roi_heads.box_predictor = embedding_extractor
+    model.load_state_dict(torch.load('save/mask_model/model_mask.pt'))
 
     # mask_predictor_param = model.roi_heads.mask_predictor.state_dict()
     # mask_indexer = MaskIndexer(in_features_mask, hidden_layer, num_classes, mask_predictor_param)
@@ -96,13 +96,10 @@ def test_mask_model(model, num_classes, json_path, image_dir_path, transform, cl
     test_dataset = ODDataset(json_path, image_dir_path, device, transforms=transform)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, collate_fn=collate_fn)
 
-    embedding_label = []
-
     model.eval()
     with torch.no_grad():
         for i, (images, targets) in tqdm(enumerate(test_loader)):
             images = [image.to(device) for image in images]
-            targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
             result = model(images)
 

@@ -27,31 +27,31 @@ root_path = os.getcwd()
 ########################################################################################################################
 
 # Setup
-# mask_config = MaskConfig(root_path)
-# num_classes = mask_config.NUM_CLASSES
-# hidden_layer = mask_config.hidden_layer
-# json_path = mask_config.musinsa_json_dir
-# image_dir_path = mask_config.musinsa_img_dir
-# batch_size = mask_config.batch_size
-# lr = mask_config.lr
-# weight_decay = mask_config.weight_decay
-# num_epochs = mask_config.num_epochs
-# classes = mask_config.classes
-#
-# # dataset
-# mask_transform = get_mask_transform(mask_config.max_size)
-# mask_dataset = ODDataset(json_path, image_dir_path, device, mask_transform)
-# mask_data_loader = DataLoader(mask_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
-#
-# # model
-# mask_model = get_mask_model(num_classes, hidden_layer)
-# optimizer = optim.SGD(mask_model.parameters(), lr=lr, weight_decay=weight_decay)
+mask_config = MaskConfig(root_path)
+num_classes = mask_config.NUM_CLASSES
+hidden_layer = mask_config.hidden_layer
+json_path = mask_config.musinsa_json_dir
+image_dir_path = mask_config.musinsa_img_dir
+batch_size = mask_config.batch_size
+lr = mask_config.lr
+weight_decay = mask_config.weight_decay
+num_epochs = mask_config.num_epochs
+classes = mask_config.classes
+
+# dataset
+mask_transform = get_mask_transform(mask_config.max_size)
+mask_dataset = ODDataset(json_path, image_dir_path, device, mask_transform)
+mask_data_loader = DataLoader(mask_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+
+# model
+mask_model = get_mask_model(num_classes, hidden_layer)
+optimizer = optim.SGD(mask_model.parameters(), lr=lr, weight_decay=weight_decay)
 
 # Train
-# train_mask_model(mask_model, mask_data_loader, num_epochs, optimizer)
+train_mask_model(mask_model, mask_data_loader, num_epochs, optimizer)
 
 # Test
-# test_mask_model(mask_model, num_classes, json_path, image_dir_path, mask_transform, classes)
+test_mask_model(mask_model, num_classes, json_path, image_dir_path, mask_transform, classes)
 
 ########################################################################################################################
 # Recommendation
