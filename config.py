@@ -2,6 +2,10 @@ import torch
 
 
 class RecomConfig:
+    classes = ["top", "skirt", "trouser", "outwear"]
+    NUM_CLASSES = 1 + len(classes)
+    in_features = 512
+
     def __init__(self, root_path: str):
         self.train_data_dir = f"{root_path}/data/recom_train/image"
         self.test_item_dir = f"{root_path}/data/recom_test/image/item"
@@ -29,5 +33,5 @@ class MaskConfig:
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
     def __init__(self, root_path: str):
-        self.musinsa_img_dir = f"{root_path}/data/crawling_data/total/image"
-        self.musinsa_json_dir = f"{root_path}/data/crawling_data/total_dataset.json"
+        self.musinsa_img_dir = f"{root_path}/data/mask_data/image"
+        self.musinsa_json_dir = f"{root_path}/data/mask_data/total_dataset.json"

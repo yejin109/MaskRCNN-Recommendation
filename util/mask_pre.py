@@ -55,6 +55,10 @@ class ToTensor:
 def collate_fn(batch):
     return tuple(zip(*batch))
 
+
+def get_mask_transform(max_size):
+    return Compose([Resize((max_size, max_size)), ToTensor()])
+
 ########################################################################################################################
 # DeepFashion Dataset 용
 ########################################################################################################################

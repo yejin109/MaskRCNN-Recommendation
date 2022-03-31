@@ -5,7 +5,7 @@ import torch
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def train_model(model, criterion, optimizer, scheduler, dataset_sizes, dataloaders, num_epochs=25):
+def train_recom_model(model, criterion, optimizer, scheduler, dataset_sizes, dataloaders, num_epochs=25):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -16,7 +16,8 @@ def train_model(model, criterion, optimizer, scheduler, dataset_sizes, dataloade
         print('-' * 10)
 
         # Each epoch has a training and validation phase
-        for phase in ['train', 'val']:
+        for phase in ['train']:
+        # for phase in ['train', 'val']:
             if phase == 'train':
                 model.train()  # Set model to training mode
             else:
@@ -71,4 +72,6 @@ def train_model(model, criterion, optimizer, scheduler, dataset_sizes, dataloade
 
     # load best model weights
     model.load_state_dict(best_model_wts)
+
+    torch.save(model.state_dict(), 'save/recom_model/model_recom.pt')
     return model
