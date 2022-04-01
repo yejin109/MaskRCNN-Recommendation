@@ -1,4 +1,5 @@
 import os
+import cv2
 import json
 import torch
 import pickle
@@ -24,11 +25,12 @@ def item_name_filling(source, style_id, item_id):
     if source == 'codibook':
         return f"codibook_item_{style_id}_{item_id}"
     else:
-        return style_id
+        return item_id
 
 
 def item_sorting(root_path: str):
     sources = ['musinsa', 'codibook']
+    # sources = ['codibook']
     item_search = dict()
     for src in sources:
         item_directory = f"{root_path}/data/recom_test/{src}/info/info_item/"
@@ -40,18 +42,30 @@ def item_sorting(root_path: str):
                 info_item = json.load(f)
             if 'style_id' not in info_item.keys():
                 continue
-
-            if info_item['title'] not in item_search.keys():
-                with open(style_directory + style_name_filling(src, info_item['style_id']) + '.json', encoding='utf-8') as style_f:
+            with open(f"{style_directory}/{src}_style_{info_item['style_id']}.json", encoding='utf-8') as style_f:
                     style_info = json.load(style_f)
-                item_search[item_name_filling(src, info_item['style_id'], info_item['item_id'])] = {'styles': [style_name_filling(src, info_item['style_id'])], 'item_link': info_item['link'],
-                                                   'style_link': style_info['link']}
+            if info_item['title'] not in item_search.keys():
+                image = cv2.imread(f"{root_path}/data/recom_test/{src}/img/img_item/{src}_item_{info_item['style_id']}_{info_item['item_id']}.jpg", cv2.COLOR_BGR2RGB)
+                if image is None:
+                    continue
+                cv2.imwrite(f'{root_path}/data/recom_test/image/img_item/item_{info_item["item_id"]}.jpg', image)
+
+                image = cv2.imread(
+                    f"{root_path}/data/recom_test/{src}/img/img_style/{src}_style_{info_item['style_id']}.jpg",
+                    cv2.COLOR_BGR2RGB)
+                if image is None:
+                    continue
+                cv2.imwrite(f'{root_path}/data/recom_test/image/style/style_{info_item["style_id"]}.jpg', image)
+
+                item_search[info_item['item_id']] = {'styles': info_item['style_id'],
+                                                   'item_link': info_item['link'], 'style_link': [style_info['link']]}
 
             else:
-                item_search[item_name_filling(src, info_item['style_id'], info_item['item_id'])]['styles'].append(style_name_filling(src, info_item['style_id']))
+                item_search[info_item['item_id']]['styles'].append(info_item['style_id'])
+                item_search[info_item['item_id']]['style_link'].append(style_name_filling(src, style_info['link']))
 
-    with open(f"{root_path}/data/recom_test/item_to_outfit.json", 'w', encoding='utf-8') as f:
-        json.dump(item_search, f, indent="\t", ensure_ascii=False)
+    # with open(f"{root_path}/data/recom_test/item_to_outfit.json", 'w', encoding='utf-8') as f:
+    #     json.dump(item_search, f, indent="\t", ensure_ascii=False)
 
 
 # TODO: 코디북과 무신사 비율 조정
@@ -64,9 +78,9 @@ def item_to_outfit(root_path, items: list):
     with open(f"{root_path}/data/recom_test/item_to_outfit.json", encoding='utf-8') as f:
         item_dict = json.load(f)
     for item in items:
-        style = item_dict[item[:-4]]['styles']
+        style = item_dict[item[5:-4]]['styles']
         styles.append(style)
-        link = item_dict[item[:-4]]['style_link']
+        link = item_dict[item[5:-4]]['style_link']
         links.append(link)
 
     return styles, links
@@ -98,7 +112,7 @@ def candidate_emb(model, root_path):
 
 
 def recommend(features, features_list):
-    neighbors = NearestNeighbors(n_neighbors=6, algorithm='brute', metric='euclidean')
+    neighbors = NearestNeighbors(n_neighbors=10, algorithm='brute', metric='euclidean')
     neighbors.fit(features_list)
 
     distence, indices = neighbors.kneighbors([features])
@@ -149,7 +163,7 @@ def get_outfit(model, root_path, uploaded_file):
     img_indicess = recommend(features, features_list)
     similar = candidates[img_indicess].tolist()[0]
     styles, links = item_to_outfit(root_path, similar)
-    return styles, links
+    return similar, styles, links
 
 # def visualize_model(model, dataloaders, class_names, num_images=6):
 #     model.load_state_dict(torch.load('save/recom_model/model_recom.pt'))

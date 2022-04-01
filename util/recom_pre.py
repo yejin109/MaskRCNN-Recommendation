@@ -1,7 +1,9 @@
 import os
 import cv2
 import json
+import torch
 from torchvision import transforms
+from tqdm import tqdm
 
 category_name = dict()
 category_name['상의'] = 'top'
@@ -58,3 +60,12 @@ def categorize(root_path):
         if not os.path.isdir(dir_path):
             os.makedirs(dir_path)
         cv2.imwrite(f'{dir_path}/{file_name}', image)
+
+
+def aggregate_emb(root_path):
+    total = torch.Tensor()
+    for item in tqdm(os.listdir(f"{root_path}/save/recom_item_output/candidate_emb")):
+        emb = torch.load(f"{root_path}/save/recom_item_output/candidate_emb/{item}")
+        total = torch.cat((total, emb), dim=0)
+    torch.save(total, f"{root_path}/save/recom_item_output/total.pt")
+    return total

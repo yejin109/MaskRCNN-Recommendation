@@ -23,6 +23,14 @@ num_classes = config.NUM_CLASSES
 device = torch.device('cpu')
 
 
+def show(borad, idx):
+    with borad:
+        st.header(f"{idx}")
+        image = Image.open(f"{outfit_path}/{styles[idx][0]}.jpg")
+        st.image(image)
+        st.write(f"{links[idx]}")
+
+
 # 마스크 모델
 mask_config = MaskConfig(root_path)
 hidden_layer = mask_config.hidden_layer
@@ -53,7 +61,7 @@ outfit_path = f"{root_path}/data/recom_test/image/style"
 
 # show_images = Image.open('uploader/다운로드.jpg')
 #
-# image = mask_transform(show_images).unsqueeze(dim=1).to(device)
+# image = mask_transform(show_images).unsqueeze(dim=0).to(device)
 #
 # result = mask_model(image)
 #
@@ -74,7 +82,7 @@ outfit_path = f"{root_path}/data/recom_test/image/style"
 # mask = mask.data.float().cpu().numpy()
 # recom_input_name = apply_mask(image, mask, labels, boxes, 'test', classes)
 #
-# styles, links = get_outfit(resnet_wo_fc, root_path, recom_input_name)
+# similar, styles, links = get_outfit(resnet_wo_fc, root_path, recom_input_name)
 #
 # styles = [i for i in styles]
 # links = [j for j in links]
@@ -89,8 +97,8 @@ if uploaded_file is not None:
         resized_im = show_images.resize(size)
         st.image(resized_im)
         input_id = 'test'
-        image = mask_transform(show_images).unsqueeze(dim=1).to(device)
-
+        image = mask_transform(show_images).unsqueeze(dim=0).to(device)
+        image = image[:, :3, :, :]
         result = mask_model(image)
 
         image = tensor2img(image[0])
@@ -115,34 +123,24 @@ if uploaded_file is not None:
         resized_im = show_images.resize(size)
         st.image(resized_im)
 
-        styles, links = get_outfit(resnet_wo_fc, root_path, recom_input_name)
+        similar, styles, links = get_outfit(resnet_wo_fc, root_path, recom_input_name)
 
         styles = [i for i in styles]
         links = [j for j in links]
-        col1, col2, col3, col4, col5 = st.columns(5)
-        with col1:
-            st.header("I")
-            image = Image.open(f"{outfit_path}/{styles[0][0]}.jpg")
-            st.image(image)
 
-        with col2:
-            st.header("II")
-            image = Image.open(f"{outfit_path}/{styles[1][0]}.jpg")
-            st.image(image)
+        count = 0
+        for i in range(10):
+            col1, col2, = st.columns(2)
+            with col1:
+                st.header(f"Source")
+                image = Image.open(f"{root_path}/data/recom_test/image/item/{similar[count]}")
+                st.image(image)
+            with col2:
+                st.header(f"Outfit")
+                image = Image.open(f"{outfit_path}/style_{styles[count]}.jpg")
+                st.image(image)
+                st.write(f"{links[count][0]}")
+            count += 1
 
-        with col3:
-            st.header("III")
-            image = Image.open(f"{outfit_path}/{styles[2][0]}.jpg")
-            st.image(image)
-
-        with col4:
-            st.header("IV")
-            image = Image.open(f"{outfit_path}/{styles[3][0]}.jpg")
-            st.image(image)
-
-        with col5:
-            st.header("V")
-            image = Image.open(f"{outfit_path}/{styles[4][0]}.jpg")
-            st.image(image)
     else:
         st.header("Some error occur")

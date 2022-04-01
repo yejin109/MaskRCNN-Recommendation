@@ -10,7 +10,7 @@ from main_mask import train_mask_model, test_mask_model
 import main_recom
 from dataset.recom_dataset import get_recom_data_setting
 from util.recom_post import candidate_emb, recommend, get_outfit, item_sorting
-from util.recom_pre import categorize
+from util.recom_pre import categorize, aggregate_emb
 from model.recom_model import ResNet_without_fc
 
 import torch
@@ -66,21 +66,21 @@ recom_data_dir = recom_config.train_data_dir
 item_sorting(root_path)
 # categorize(root_path)
 
-image_datasets, dataloaders, dataset_sizes, class_names = get_recom_data_setting(recom_data_dir)
-
+# image_datasets, dataloaders, dataset_sizes, class_names = get_recom_data_setting(recom_data_dir)
+#
 model_ft = models.resnet18(pretrained=True)
 num_ftrs = model_ft.fc.in_features
-model_ft.fc = nn.Linear(num_ftrs, recom_num_classes)
-
-model_ft = model_ft.to(device)
-
-criterion = nn.CrossEntropyLoss()
-
-# Observe that all parameters are being optimized
-optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-
-# Decay LR by a factor of 0.1 every 7 epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+# model_ft.fc = nn.Linear(num_ftrs, recom_num_classes)
+#
+# model_ft = model_ft.to(device)
+#
+# criterion = nn.CrossEntropyLoss()
+#
+# # Observe that all parameters are being optimized
+# optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+#
+# # Decay LR by a factor of 0.1 every 7 epochs
+# exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
 
 # Train
 # main_recom.train_recom_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, dataset_sizes, dataloaders)
@@ -90,7 +90,8 @@ resnet_wo_fc = ResNet_without_fc([2, 2, 2, 2], num_ftrs, recom_num_classes, True
 resnet_wo_fc.load_state_dict(torch.load('save/recom_model/model_recom.pt'))
 
 # candidate_emb(resnet_wo_fc, root_path)
-
+aggregate_emb(root_path)
+#
 # embeddings = torch.Tensor()
 # for emb_name in tqdm(os.listdir(f'{root_path}/save/recom_item_output/candidate_emb')):
 #     emb = torch.load(f'{root_path}/save/recom_item_output/candidate_emb/{emb_name}')

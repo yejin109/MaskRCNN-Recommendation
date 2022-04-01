@@ -454,7 +454,7 @@ def toCOCO(data_type: str, root_path: str):
                         y_1 = box[1]
                         bbox=[x_1,y_1,w,h]
                         cat = temp[i]['category_id']
-                        style = temp[i]['style']
+                        style = temp[i]['img_style']
                         seg = temp[i]['segmentation']
                         landmarks = temp[i]['landmarks']
 
@@ -540,7 +540,7 @@ def toCOCO(data_type: str, root_path: str):
                             'pair_id': pair_id,
                             'image_id': num,
                             'iscrowd': 0,
-                            'style': style,
+                            'img_style': style,
                             'num_keypoints':num_points,
                             'keypoints':points.tolist(),
                             'segmentation': seg,
