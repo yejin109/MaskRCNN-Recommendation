@@ -13,15 +13,22 @@ from sklearn.neighbors import NearestNeighbors
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def name_filling(source, style_id):
+def style_name_filling(source, style_id):
     if source == 'codibook':
         return f"codibook_style_{style_id}"
     else:
         return style_id
 
 
+def item_name_filling(source, style_id, item_id):
+    if source == 'codibook':
+        return f"codibook_item_{style_id}_{item_id}"
+    else:
+        return style_id
+
+
 def item_sorting(root_path: str):
-    sources = ['musinsa_codimap', 'codibook']
+    sources = ['musinsa', 'codibook']
     item_search = dict()
     for src in sources:
         item_directory = f"{root_path}/data/recom_test/{src}/info/info_item/"
@@ -35,13 +42,13 @@ def item_sorting(root_path: str):
                 continue
 
             if info_item['title'] not in item_search.keys():
-                with open(style_directory+name_filling(src, info_item['style_id'])+'.json', encoding='utf-8') as style_f:
+                with open(style_directory + style_name_filling(src, info_item['style_id']) + '.json', encoding='utf-8') as style_f:
                     style_info = json.load(style_f)
-                item_search[info_item['title']] = {'styles': [info_item['style_id']], 'item_link': info_item['link'],
+                item_search[item_name_filling(src, info_item['style_id'], info_item['item_id'])] = {'styles': [style_name_filling(src, info_item['style_id'])], 'item_link': info_item['link'],
                                                    'style_link': style_info['link']}
 
             else:
-                item_search[info_item['title']]['styles'].append(info_item['style_id'])
+                item_search[item_name_filling(src, info_item['style_id'], info_item['item_id'])]['styles'].append(style_name_filling(src, info_item['style_id']))
 
     with open(f"{root_path}/data/recom_test/item_to_outfit.json", 'w', encoding='utf-8') as f:
         json.dump(item_search, f, indent="\t", ensure_ascii=False)
@@ -68,7 +75,6 @@ def item_to_outfit(root_path, items: list):
 def candidate_emb(model, root_path):
     transformers = get_recom_transform()
     image_path_all = []
-    imageset_total = torch.Tensor()
 
     model.eval()
     for fashion_images in tqdm(os.listdir(f'{root_path}/data/recom_test/image/item')):
@@ -79,10 +85,8 @@ def candidate_emb(model, root_path):
         # PIL to Tensor
         img_RGB_tensor_from_PIL = transformers['candidate_emb'](img_RGB)
         img_unsqueeze = torch.unsqueeze(img_RGB_tensor_from_PIL, 0)
-        # imageset_total = torch.cat([imageset_total, img_unsqueeze], dim=0)
         output_feature = model(img_unsqueeze.to(device))
         torch.save(output_feature.detach().cpu(), f"{root_path}/save/recom_item_output/candidate_emb/{fashion_images[:-4]}.pt")
-
     # imageset_total = imageset_total.to(device)
     # with torch.no_grad():
     #     output_feature = resnet_wo_fc(imageset_total)
@@ -129,16 +133,18 @@ def get_outfit(model, root_path, uploaded_file):
     img_unsqueeze = torch.unsqueeze(img_RGB_tensor_from_PIL, 0).to(device)
 
     # extract features of uploaded image
+    model.to(device)
     model.eval()
     with torch.no_grad():
         features = model(img_unsqueeze)
 
     # features into list
     features = torch.squeeze(features, 0).tolist()
-    features_list = torch.Tensor([])
-    for emb_file in tqdm(os.listdir(f'{root_path}/save/recom_item_output/candidate_emb')):
-        emb = torch.load(f'{root_path}/save/recom_item_output/candidate_emb/{emb_file}')
-        features_list = torch.cat([features_list, emb], dim=0)
+    features_list = torch.load(f"{root_path}/save/recom_item_output/total.pt")
+    # features_list = torch.Tensor([])
+    # for emb_file in tqdm(os.listdir(f'{root_path}/save/recom_item_output/candidate_emb')):
+    #     emb = torch.load(f'{root_path}/save/recom_item_output/candidate_emb/{emb_file}')
+    #     features_list = torch.cat([features_list, emb], dim=0)
 
     img_indicess = recommend(features, features_list)
     similar = candidates[img_indicess].tolist()[0]

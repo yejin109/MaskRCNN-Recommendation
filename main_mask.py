@@ -121,6 +121,6 @@ def test_mask_model(model, num_classes, json_path, image_dir_path, transform, cl
             boxes = boxes[:thresholded_preds_count]
 
             mask = mask.data.float().cpu().numpy()
-            final_labels = apply_mask(image, mask, labels, boxes, i, classes)
+            apply_mask(image, mask, labels, boxes, i, classes)
 
 

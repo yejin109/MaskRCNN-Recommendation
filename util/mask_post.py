@@ -57,7 +57,7 @@ def apply_mask(image, masks, labels, boxes, file_name, classes):
     # image save
     cv2.imwrite(f'save/mask_output/{file_name}.png', image)
     cv2.imwrite(f'save/recom_input/{file_name}_{classes[labels[0]]}.png', image_only) # png_only 파일에 누끼 딴 이미지 저장
-    return final_labels
+    return f'{file_name}_{classes[labels[0]]}.png'
 
 # labels = labels -1
 # final_labels = []
