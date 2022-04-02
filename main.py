@@ -66,25 +66,37 @@ recom_data_dir = recom_config.train_data_dir
 item_sorting(root_path)
 # categorize(root_path)
 
-# image_datasets, dataloaders, dataset_sizes, class_names = get_recom_data_setting(recom_data_dir)
-#
+image_datasets, dataloaders, dataset_sizes, class_names = get_recom_data_setting(recom_data_dir)
+
+####
 model_ft = models.resnet18(pretrained=True)
 num_ftrs = model_ft.fc.in_features
-# model_ft.fc = nn.Linear(num_ftrs, recom_num_classes)
-#
-# model_ft = model_ft.to(device)
-#
-# criterion = nn.CrossEntropyLoss()
-#
-# # Observe that all parameters are being optimized
-# optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-#
-# # Decay LR by a factor of 0.1 every 7 epochs
-# exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+####
+
+model_ft.fc = nn.Linear(num_ftrs, recom_num_classes)
+
+model_ft = model_ft.to(device)
+
+criterion = nn.CrossEntropyLoss()
+
+params_to_update = []
+for name, param in model_ft.named_parameters():
+    if name.split('.')[0] == 'layer4' or name.split('.')[0] == 'fc':
+        param.requires_grad = True
+        params_to_update.append(param)
+    else:
+        param.requires_grad = False
+
+# Observe that all parameters are being optimized
+optimizer_ft = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
+
+# Decay LR by a factor of 0.1 every 7 epochs
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
 
 # Train
-# main_recom.train_recom_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, dataset_sizes, dataloaders)
+main_recom.train_recom_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, dataset_sizes, dataloaders)
 
+####
 # Embedding 생성
 resnet_wo_fc = ResNet_without_fc([2, 2, 2, 2], num_ftrs, recom_num_classes, True).to(device)
 resnet_wo_fc.load_state_dict(torch.load('save/recom_model/model_recom.pt'))
