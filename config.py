@@ -2,7 +2,7 @@ import torch
 
 
 class RecomConfig:
-    classes = ["top", "skirt", "trouser", "outwear"]
+    classes = ["top", "skirt", "trouser", "outwear", "shoes", "hat"]
     NUM_CLASSES = 1 + len(classes)
     in_features = 512
 

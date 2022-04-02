@@ -91,7 +91,9 @@ def candidate_emb(model, root_path):
     image_path_all = []
 
     model.eval()
+    # for fashion_images in tqdm(os.listdir(f'{root_path}/data/mask_data/image')):
     for fashion_images in tqdm(os.listdir(f'{root_path}/data/recom_test/image/item')):
+        # images_path = os.path.join(f'{root_path}/data/mask_data/image/', fashion_images)
         images_path = os.path.join(f'{root_path}/data/recom_test/image/item', fashion_images)
         image_path_all.append(images_path)
         img_RGB = Image.open(images_path).convert('RGB')
@@ -100,7 +102,7 @@ def candidate_emb(model, root_path):
         img_RGB_tensor_from_PIL = transformers['candidate_emb'](img_RGB)
         img_unsqueeze = torch.unsqueeze(img_RGB_tensor_from_PIL, 0)
         output_feature = model(img_unsqueeze.to(device))
-        torch.save(output_feature.detach().cpu(), f"{root_path}/save/recom_item_output/candidate_emb/{fashion_images[:-4]}.pt")
+        torch.save(output_feature.detach().cpu(), f"{root_path}/save/recom_item_output/candidate_emb_2/{fashion_images[:-4]}.pt")
     # imageset_total = imageset_total.to(device)
     # with torch.no_grad():
     #     output_feature = resnet_wo_fc(imageset_total)
@@ -108,7 +110,7 @@ def candidate_emb(model, root_path):
     # torch.Size([2,512])
 
     # pickle.dump(output_feature, open(f"{root_path}/save/recom_item_output/image_features_embedding.pkl", "wb"))
-    pickle.dump(image_path_all, open(f"{root_path}/save/recom_item_output/candidate_img_files.pkl", "wb"))
+    pickle.dump(image_path_all, open(f"{root_path}/save/recom_item_output/candidate_img_files_2.pkl", "wb"))
 
 
 def recommend(features, features_list):
@@ -131,6 +133,7 @@ def save_file(uploaded_file):
 
 def get_outfit(model, root_path, uploaded_file):
     transformers = get_recom_transform()
+    # candidates = os.listdir(f"{root_path}/data/mask_data/image")
     candidates = os.listdir(f"{root_path}/data/recom_test/image/item")
     candidates = np.array(candidates)
 
@@ -154,7 +157,8 @@ def get_outfit(model, root_path, uploaded_file):
 
     # features into list
     features = torch.squeeze(features, 0).tolist()
-    features_list = torch.load(f"{root_path}/save/recom_item_output/total.pt")
+    features_list = torch.load(f"{root_path}/save/recom_item_output/total_pure.pt")
+    # features_list = torch.load(f"{root_path}/save/recom_item_output/total.pt")
     # features_list = torch.Tensor([])
     # for emb_file in tqdm(os.listdir(f'{root_path}/save/recom_item_output/candidate_emb')):
     #     emb = torch.load(f'{root_path}/save/recom_item_output/candidate_emb/{emb_file}')
@@ -162,6 +166,8 @@ def get_outfit(model, root_path, uploaded_file):
 
     img_indicess = recommend(features, features_list)
     similar = candidates[img_indicess].tolist()[0]
+    # styles = []
+    # links = []
     styles, links = item_to_outfit(root_path, similar)
     return similar, styles, links
 

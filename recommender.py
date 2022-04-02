@@ -50,7 +50,8 @@ mask_model.eval()
 
 # 추천 모델
 resnet_wo_fc = ResNet_without_fc([2, 2, 2, 2], recom_in_features, num_classes, True).to(device)
-resnet_wo_fc.load_state_dict(torch.load('save/recom_model/model_recom.pt'))
+resnet_wo_fc.load_state_dict(torch.load('save/recom_model/pure.pt'))
+# resnet_wo_fc.load_state_dict(torch.load('save/recom_model/model_recom.pt'))
 transformers = get_recom_transform()
 resnet_wo_fc.to(device)
 resnet_wo_fc.eval()
@@ -62,6 +63,7 @@ outfit_path = f"{root_path}/data/recom_test/image/style"
 # show_images = Image.open('uploader/다운로드.jpg')
 #
 # image = mask_transform(show_images).unsqueeze(dim=0).to(device)
+# image = image[:, :3, :, :]
 #
 # result = mask_model(image)
 #
@@ -99,6 +101,7 @@ if uploaded_file is not None:
         input_id = 'test'
         image = mask_transform(show_images).unsqueeze(dim=0).to(device)
         image = image[:, :3, :, :]
+        print(image.size())
         result = mask_model(image)
 
         image = tensor2img(image[0])
@@ -128,11 +131,17 @@ if uploaded_file is not None:
         styles = [i for i in styles]
         links = [j for j in links]
 
+        print("="*30)
+        print(similar)
+        print(styles)
+        print("="*30)
+
         count = 0
         for i in range(10):
             col1, col2, = st.columns(2)
             with col1:
                 st.header(f"Source")
+                # image = Image.open(f"{root_path}/data/mask_data/image/{similar[count]}")
                 image = Image.open(f"{root_path}/data/recom_test/image/item/{similar[count]}")
                 st.image(image)
             with col2:

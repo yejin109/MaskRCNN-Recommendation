@@ -1,3 +1,7 @@
 save/mask_model/model_mask.pt
 save/recom_model/model_recom.pt
 save/recom_item_output/total.pt
+save/recom_item_output/total_pure.pt
+save/recom_item_output/total_2.pt
+save/recom_item_output/total_3.pt
+save/recom_model/pure.pt

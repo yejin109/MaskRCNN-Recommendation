@@ -64,8 +64,8 @@ def categorize(root_path):
 
 def aggregate_emb(root_path):
     total = torch.Tensor()
-    for item in tqdm(os.listdir(f"{root_path}/save/recom_item_output/candidate_emb")):
-        emb = torch.load(f"{root_path}/save/recom_item_output/candidate_emb/{item}")
+    for item in tqdm(os.listdir(f"{root_path}/save/recom_item_output/candidate_emb_2")):
+        emb = torch.load(f"{root_path}/save/recom_item_output/candidate_emb_2/{item}")
         total = torch.cat((total, emb), dim=0)
-    torch.save(total, f"{root_path}/save/recom_item_output/total.pt")
+    torch.save(total, f"{root_path}/save/recom_item_output/total_2.pt")
     return total

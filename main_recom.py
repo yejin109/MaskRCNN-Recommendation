@@ -73,5 +73,5 @@ def train_recom_model(model, criterion, optimizer, scheduler, dataset_sizes, dat
     # load best model weights
     model.load_state_dict(best_model_wts)
 
-    torch.save(model.state_dict(), 'save/recom_model/model_recom.pt')
+    torch.save(model.state_dict(), 'save/recom_model/model_recom_2.pt')
     return model
