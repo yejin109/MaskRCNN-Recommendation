@@ -89,6 +89,7 @@ def item_to_outfit(root_path, items: list):
 def candidate_emb(model, root_path):
     transformers = get_recom_transform()
     image_path_all = []
+    # cls_names = []
 
     model.eval()
     # for fashion_images in tqdm(os.listdir(f'{root_path}/data/mask_data/image')):
@@ -102,7 +103,9 @@ def candidate_emb(model, root_path):
         img_RGB_tensor_from_PIL = transformers['candidate_emb'](img_RGB)
         img_unsqueeze = torch.unsqueeze(img_RGB_tensor_from_PIL, 0)
         output_feature = model(img_unsqueeze.to(device))
-        torch.save(output_feature.detach().cpu(), f"{root_path}/save/recom_item_output/candidate_emb_2/{fashion_images[:-4]}.pt")
+        # cls_name = model_cls(img_unsqueeze.to(device))
+        # cls_names.append(cls_name)
+        torch.save(output_feature.detach().cpu(), f"{root_path}/save/recom_item_output/candidate_emb_3/{fashion_images[:-4]}.pt")
     # imageset_total = imageset_total.to(device)
     # with torch.no_grad():
     #     output_feature = resnet_wo_fc(imageset_total)
@@ -110,7 +113,8 @@ def candidate_emb(model, root_path):
     # torch.Size([2,512])
 
     # pickle.dump(output_feature, open(f"{root_path}/save/recom_item_output/image_features_embedding.pkl", "wb"))
-    pickle.dump(image_path_all, open(f"{root_path}/save/recom_item_output/candidate_img_files_2.pkl", "wb"))
+    # with open()
+    pickle.dump(image_path_all, open(f"{root_path}/save/recom_item_output/candidate_img_files_3.pkl", "wb"))
 
 
 def recommend(features, features_list):
@@ -157,7 +161,7 @@ def get_outfit(model, root_path, uploaded_file):
 
     # features into list
     features = torch.squeeze(features, 0).tolist()
-    features_list = torch.load(f"{root_path}/save/recom_item_output/total_pure.pt")
+    features_list = torch.load(f"{root_path}/save/recom_item_output/total_3.pt")
     # features_list = torch.load(f"{root_path}/save/recom_item_output/total.pt")
     # features_list = torch.Tensor([])
     # for emb_file in tqdm(os.listdir(f'{root_path}/save/recom_item_output/candidate_emb')):

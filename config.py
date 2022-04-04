@@ -2,8 +2,9 @@ import torch
 
 
 class RecomConfig:
-    classes = ["top", "skirt", "trouser", "outwear", "shoes", "hat"]
-    NUM_CLASSES = 1 + len(classes)
+    classes = ["top", "skirt", "trouser", "outwear", "shoes", "hat", "accessory", "bag", "sneakers", "socks",
+               "denim_pants", "women_bag", "sneakers", "socks", "training_pants"]
+    NUM_CLASSES = len(classes)
     in_features = 512
 
     def __init__(self, root_path: str):
@@ -28,7 +29,7 @@ class MaskConfig:
     lr = 1e-2
     weight_decay = 1e-3
     max_size = 800
-    num_epochs = 5
+    num_epochs = 10
 
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 

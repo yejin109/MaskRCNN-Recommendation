@@ -1,6 +1,5 @@
-# TODO: TF로 구현한 코드 여기에 정리하기
-
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
 from dataset.mask_dataset import ODDataset
@@ -14,49 +13,36 @@ from torch.utils.data import DataLoader
 
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
-# root_path = os.getcwd()
-# config = MaskConfig(root_path)
-#
-# # COCO 형태로 바꾸기
-# # toCOCO('validation', root_path)
-#
-# # Hyper-parameter
-# lr = config.lr
-# weight_decay = config.weight_decay
-# num_epochs = config.num_epochs
-# batch_size = config.batch_size
-# hidden_layer = config.hidden_layer
-#
-# classes = config.classes
-# num_classes = config.NUM_CLASSES
-# max_size = config.max_size
-# score_threshold = config.score_threshold
-# device = config.device
-#
-# # Model
-# model = maskrcnn_resnet50_fpn(pretrained=True)
-# in_features = model.roi_heads.box_predictor.cls_score.in_features
-# model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-# in_features_mask = model.roi_heads.mask_predictor.conv5_mask.in_channels
-# model.roi_heads.mask_predictor = MaskRCNNPredictor(in_features_mask, hidden_layer, num_classes)
-#
-# model.to(device)
-
-# Dataset
-# transform = Compose([Resize((max_size, max_size)), ToTensor()])
-# train_dataset = ODDataset(config.musinsa_json_dir, config.musinsa_img_dir, device, transforms=transform)
-# train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
-#
-# optimizer = SGD(model.parameters(), lr=lr, weight_decay=weight_decay)
-
 
 # Train
-def train_mask_model(model, train_loader, num_epochs, optimizer):
-    model.train()
+def train_mask_model(model, train_loader, val_loader, num_epochs, optimizer, root_path):
     print(f"한 에폭당 iteration 수 : {len(train_loader)}")
-    loss_per_iter = []
+    losses_summary = dict()
+    losses_summary['loss_classifier'] = []
+    loss_classifier = []
+    losses_summary['loss_mask'] = []
+    loss_mask = []
+    losses_summary['loss_box_reg'] = []
+    loss_box_reg = []
+    losses_summary['loss_objectness'] = []
+    loss_objectness = []
+    losses_summary['total'] = []
+    total = []
+
+    val_losses_summary = dict()
+    val_losses_summary['loss_classifier'] = []
+    val_loss_classifier = []
+    val_losses_summary['loss_mask'] = []
+    val_loss_mask = []
+    val_losses_summary['loss_box_reg'] = []
+    val_loss_box_reg = []
+    val_losses_summary['loss_objectness'] = []
+    val_loss_objectness = []
+    val_losses_summary['total'] = []
+    val_total = []
 
     for epoch in range(num_epochs):
+        model.train()
         for i, (images, targets) in tqdm(enumerate(train_loader)):
             optimizer.zero_grad()
             images = [image.to(device) for image in images]
@@ -64,21 +50,50 @@ def train_mask_model(model, train_loader, num_epochs, optimizer):
 
             losses = model(images, targets)
             loss = sum(loss for loss in losses.values())
-            loss_per_iter.append(loss.detach().cpu().numpy())
+            loss_classifier.append(losses['loss_classifier'].item())
+            loss_mask.append(losses['loss_mask'].item())
+            loss_box_reg.append(losses['loss_box_reg'].item())
+            loss_objectness.append(losses['loss_objectness'].item())
+            total.append(loss.item())
 
-            print(
-                f"{epoch}, {i}, C: {losses['loss_classifier'].item():.5f}, M: {losses['loss_mask'].item():.5f}, "
-                f"B: {losses['loss_box_reg'].item():.5f}, O: {losses['loss_objectness'].item():.5f}, T: {loss.item():.5f}")
+            # print(
+            #     f"{epoch}, {i}, C: {losses['loss_classifier'].item():.5f}, M: {losses['loss_mask'].item():.5f}, "
+            #     f"B: {losses['loss_box_reg'].item():.5f}, O: {losses['loss_objectness'].item():.5f}, T: {loss.item():.5f}")
 
             loss.backward()
             optimizer.step()
-        print()
+        losses_summary['loss_classifier'].append(np.mean(loss_classifier))
+        losses_summary['loss_mask'].append(np.mean(loss_mask))
+        losses_summary['loss_box_reg'].append(np.mean(loss_box_reg))
+        losses_summary['loss_objectness'].append(np.mean(loss_objectness))
+        losses_summary['total'].append(np.mean(total))
 
-    torch.save(model.state_dict(), 'save/mask_model/model_mask.pt')
+        with torch.no_grad():
+            for i, (images, targets) in tqdm(enumerate(val_loader)):
+                images = [image.to(device) for image in images]
+                targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
-# plt.figure()
-# plt.plot(loss_per_iter)
-# plt.show()
+                losses = model(images, targets)
+                loss = sum(loss for loss in losses.values())
+                val_loss_classifier.append(losses['loss_classifier'].item())
+                val_loss_mask.append(losses['loss_mask'].item())
+                val_loss_box_reg.append(losses['loss_box_reg'].item())
+                val_loss_objectness.append(losses['loss_objectness'].item())
+                val_total.append(loss.item())
+        val_losses_summary['loss_classifier'].append(np.mean(val_loss_classifier))
+        val_losses_summary['loss_mask'].append(np.mean(val_loss_mask))
+        val_losses_summary['loss_box_reg'].append(np.mean(val_loss_box_reg))
+        val_losses_summary['loss_objectness'].append(np.mean(val_loss_objectness))
+        val_losses_summary['total'].append(np.mean(val_total))
+
+    losses_summary = pd.DataFrame.from_dict(losses_summary)
+    losses_summary.to_csv(f'{root_path}/save/log/mask_train_log.csv')
+
+    val_losses_summary = pd.DataFrame.from_dict(val_losses_summary)
+    val_losses_summary.to_csv(f'{root_path}/save/log/mask_val_log.csv')
+
+
+    # torch.save(model.state_dict(), 'save/mask_model/model_mask.pt')
 
 
 # Test
@@ -100,8 +115,9 @@ def test_mask_model(model, num_classes, json_path, image_dir_path, transform, cl
     with torch.no_grad():
         for i, (images, targets) in tqdm(enumerate(test_loader)):
             images = [image.to(device) for image in images]
+            targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
-            result = model(images)
+            result = model(images, targets)
 
             image = tensor2img(images[0])
             scores = list(result[0]['scores'].detach().cpu().numpy())

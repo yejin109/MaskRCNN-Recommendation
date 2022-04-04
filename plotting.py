@@ -1,0 +1,48 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+mask_train = pd.read_csv('save/log/mask_train_log.csv', index_col = 0)
+mask_val = pd.read_csv('save/log/mask_val_log.csv', index_col = 0)
+recom = pd.read_csv('save/log/recom_log.csv', index_col = 0)
+print()
+
+plt.figure()
+plt.title('Total Loss')
+plt.plot(mask_train.total, label='Train')
+plt.plot(mask_val.total, label='Val')
+plt.legend()
+plt.savefig('save/log/total_loss.png')
+plt.show()
+
+plt.figure()
+plt.title('CLS Loss')
+plt.plot(mask_train.loss_classifier, label='Train')
+plt.plot(mask_val.loss_classifier, label='Val')
+plt.legend()
+plt.savefig('save/log/classifier.png')
+plt.show()
+
+plt.figure()
+plt.title('Train')
+plt.plot(mask_train.loss_classifier, label='CLS')
+plt.plot(mask_train.loss_mask, label='Mask')
+plt.plot(mask_train.loss_box_reg, label='Box')
+plt.legend()
+plt.savefig('save/log/Train.png')
+plt.show()
+
+plt.figure()
+plt.title('Val')
+plt.plot(mask_val.loss_classifier, label='CLS')
+plt.plot(mask_val.loss_mask, label='Mask')
+plt.plot(mask_val.loss_box_reg, label='Box')
+plt.legend()
+plt.savefig('save/log/Val.png')
+plt.show()
+
+plt.figure()
+plt.title('Recommendation Model')
+plt.plot(recom.Train, label='Train')
+plt.legend()
+plt.savefig('save/log/Recom.png')
+plt.show()

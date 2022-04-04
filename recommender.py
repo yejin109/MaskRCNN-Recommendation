@@ -18,7 +18,7 @@ from util.mask_post import tensor2img, apply_mask
 root_path = os.getcwd()
 config = RecomConfig(root_path)
 recom_in_features = config.in_features
-num_classes = config.NUM_CLASSES
+recom_num_classes = config.NUM_CLASSES
 
 device = torch.device('cpu')
 
@@ -36,21 +36,23 @@ mask_config = MaskConfig(root_path)
 hidden_layer = mask_config.hidden_layer
 json_path = mask_config.musinsa_json_dir
 image_dir_path = mask_config.musinsa_img_dir
+mask_num_classes = mask_config.NUM_CLASSES
+
 classes = mask_config.classes
 max_size = mask_config.max_size
-mask_model = get_mask_model(num_classes, hidden_layer)
+mask_model = get_mask_model(mask_num_classes, hidden_layer)
 mask_transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
 mask_in_features = mask_model.roi_heads.box_predictor.cls_score.in_features
 box_predictor_param = mask_model.roi_heads.box_predictor.state_dict()
-embedding_extractor = EmbeddingExtractor(mask_in_features, num_classes, box_predictor_param)
+embedding_extractor = EmbeddingExtractor(mask_in_features, mask_num_classes, box_predictor_param)
 mask_model.roi_heads.box_predictor = embedding_extractor
 mask_model.load_state_dict(torch.load('save/mask_model/model_mask.pt'))
 mask_model.to(device)
 mask_model.eval()
 
 # 추천 모델
-resnet_wo_fc = ResNet_without_fc([2, 2, 2, 2], recom_in_features, num_classes, True).to(device)
-resnet_wo_fc.load_state_dict(torch.load('save/recom_model/pure.pt'))
+resnet_wo_fc = ResNet_without_fc([2, 2, 2, 2], recom_in_features, recom_num_classes, True).to(device)
+resnet_wo_fc.load_state_dict(torch.load('save/recom_model/model_recom_3.pt'))
 # resnet_wo_fc.load_state_dict(torch.load('save/recom_model/model_recom.pt'))
 transformers = get_recom_transform()
 resnet_wo_fc.to(device)
@@ -137,7 +139,7 @@ if uploaded_file is not None:
         print("="*30)
 
         count = 0
-        for i in range(10):
+        for i in range(4):
             col1, col2, = st.columns(2)
             with col1:
                 st.header(f"Source")

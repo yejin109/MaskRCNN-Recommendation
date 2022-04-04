@@ -1,17 +1,24 @@
 import time
 import copy
 import torch
+import numpy as np
+import pandas as pd
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def train_recom_model(model, criterion, optimizer, scheduler, dataset_sizes, dataloaders, num_epochs=25):
+def train_recom_model(model, criterion, optimizer, scheduler, dataset_sizes, dataloaders, root_path, num_epochs=25):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
-
+    train_loss_per_epoch = []
+    val_loss_per_epoch = []
+    val_acc = []
     for epoch in range(num_epochs):
+        train_loss_per_iter = []
+        val_loss_per_iter = []
+
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
 
@@ -27,7 +34,7 @@ def train_recom_model(model, criterion, optimizer, scheduler, dataset_sizes, dat
             running_corrects = 0
 
             # Iterate over data.
-            for inputs, labels in dataloaders[phase]:
+            for (inputs, labels) in dataloaders[phase]:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -45,6 +52,9 @@ def train_recom_model(model, criterion, optimizer, scheduler, dataset_sizes, dat
                     if phase == 'train':
                         loss.backward()
                         optimizer.step()
+                        train_loss_per_iter.append(loss.item())
+                    else:
+                        val_loss_per_iter.append(loss.item())
 
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
@@ -62,8 +72,9 @@ def train_recom_model(model, criterion, optimizer, scheduler, dataset_sizes, dat
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
-
-        print()
+        train_loss_per_epoch.append(np.mean(train_loss_per_iter))
+        val_loss_per_epoch.append(np.mean(val_loss_per_iter))
+        val_acc.append(best_acc)
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
@@ -73,5 +84,10 @@ def train_recom_model(model, criterion, optimizer, scheduler, dataset_sizes, dat
     # load best model weights
     model.load_state_dict(best_model_wts)
 
-    torch.save(model.state_dict(), 'save/recom_model/model_recom_2.pt')
+    torch.save(model.state_dict(), 'save/recom_model/model_recom_3.pt')
+
+    summary = pd.concat((pd.Series(train_loss_per_epoch).to_frame('Train'),
+                         pd.Series(val_loss_per_epoch).to_frame('Val'),
+                         pd.Series(val_acc).to_frame('Accuracy')), axis=1)
+    summary.to_csv(f'{root_path}/save/log/recom_log.csv')
     return model

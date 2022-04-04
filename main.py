@@ -27,7 +27,7 @@ root_path = os.getcwd()
 # Mask
 ########################################################################################################################
 
-# Setup
+# # Setup
 # mask_config = MaskConfig(root_path)
 # num_classes = mask_config.NUM_CLASSES
 # hidden_layer = mask_config.hidden_layer
@@ -42,14 +42,20 @@ root_path = os.getcwd()
 # # dataset
 # mask_transform = get_mask_transform(mask_config.max_size)
 # mask_dataset = ODDataset(json_path, image_dir_path, device, mask_transform)
-# mask_data_loader = DataLoader(mask_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+#
+# mask_train_size = int(0.8 * len(mask_dataset))
+# mask_test_size = len(mask_dataset) - mask_train_size
+# mask_train_dataset, mask_test_dataset = torch.utils.data.random_split(mask_dataset, [mask_train_size, mask_test_size])
+#
+# mask_train_loader = torch.utils.data.DataLoader(mask_train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+# mask_test_loader = torch.utils.data.DataLoader(mask_test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 #
 # # model
 # mask_model = get_mask_model(num_classes, hidden_layer)
 # optimizer = optim.SGD(mask_model.parameters(), lr=lr, weight_decay=weight_decay)
 #
 # # Train
-# train_mask_model(mask_model, mask_data_loader, num_epochs, optimizer)
+# train_mask_model(mask_model, mask_train_loader, mask_test_loader, num_epochs, optimizer, root_path)
 #
 # # Test
 # test_mask_model(mask_model, num_classes, json_path, image_dir_path, mask_transform, classes)
@@ -67,42 +73,44 @@ recom_data_dir = recom_config.train_data_dir
 # categorize(root_path)
 
 image_datasets, dataloaders, dataset_sizes, class_names = get_recom_data_setting(recom_data_dir)
-#
+
 model_ft = models.resnet18(pretrained=True)
 num_ftrs = model_ft.fc.in_features
 model_ft.fc = nn.Linear(num_ftrs, recom_num_classes)
 
-# torch.save(model_ft.state_dict(), f"{root_path}/save/recom_model/pure.pt")
-#
 model_ft = model_ft.to(device)
-#
+
 criterion = nn.CrossEntropyLoss()
-#
-# # Observe that all parameters are being optimized
-optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-#
-# # Decay LR by a factor of 0.1 every 7 epochs
+
+params_to_update = []
+for name, param in model_ft.named_parameters():
+    if name.split('.')[0] == 'layer4' or name.split('.')[0] == 'fc':
+        param.requires_grad = True
+        params_to_update.append(param)
+    else:
+        param.requires_grad = False
+
+# Observe that all parameters are being optimized
+# optimizer_ft = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
+optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.01, weight_decay=1e-3)
+# optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.01)
+
+# Decay LR by a factor of 0.1 every 7 epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
 
 # Train
-main_recom.train_recom_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, dataset_sizes, dataloaders)
+main_recom.train_recom_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, dataset_sizes, dataloaders, root_path, num_epochs=15)
 
 # Embedding 생성
 resnet_wo_fc = ResNet_without_fc([2, 2, 2, 2], num_ftrs, recom_num_classes, True).to(device)
-resnet_wo_fc.load_state_dict(torch.load('save/recom_model/model_recom_2.pt'))
+resnet_wo_fc.load_state_dict(torch.load('save/recom_model/model_recom_3.pt'))
 
 candidate_emb(resnet_wo_fc, root_path)
 aggregate_emb(root_path)
-#
-# embeddings = torch.Tensor()
-# for emb_name in tqdm(os.listdir(f'{root_path}/save/recom_item_output/candidate_emb')):
-#     emb = torch.load(f'{root_path}/save/recom_item_output/candidate_emb/{emb_name}')
-#     embeddings = torch.cat((embeddings, emb), dim=0)
-# torch.save(embeddings, f'{root_path}/save/recom_item_output/total.pt')
 
-# 추천
-# example_path = os.listdir('save/recom_input/')[0]
-#
-# result = get_outfit(resnet_wo_fc, root_path, example_path)
-#
-print()
+# # 추천
+# # example_path = os.listdir('save/recom_input/')[0]
+# #
+# # result = get_outfit(resnet_wo_fc, root_path, example_path)
+# #
+# print()
