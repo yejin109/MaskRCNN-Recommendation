@@ -4,7 +4,7 @@
 
 Overview
 ***
-![제목](/md_src/img1.png){: width="50%" height="40%"}{: .align-center}
+![제목](/md_src/img1.PNG){: width="50%" height="40%"}{: .align-center}
 
 This service recommends outfit based on what kind of clothes user has. In the first step, users 
 upload their own clothes such as shirt or outwear in their own closet. Then, this model can recognize 
