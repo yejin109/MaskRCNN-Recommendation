@@ -1,6 +1,7 @@
 # Recommendation based on Instance Segmentation and Data Embedding
 ***
 
+Collaborators : 김찬영, 박지호, 강민주, 권수현, 전재현, 김예진 
 
 Overview
 ***
